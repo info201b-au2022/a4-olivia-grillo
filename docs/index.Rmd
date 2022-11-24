@@ -1,7 +1,7 @@
 ---
 title: "Your A4 Report Title (TODO: Revise title)"
-author: "Your Name"
-date: '2022-11-01'
+author: "Olivia Grillo"
+date: '2022-11-20'
 output: html_document
 ---
 
@@ -34,12 +34,17 @@ print(sum)
 ```
 
 ## Introduction 
-[TODO]
+In this data set, instances of incarceration in the United States. However, this data set portrays a story much more complex than just the number of incarcerated people: This data set explores criminalization and racial disparities within the United States’ mass incarceration crisis. 
+	The two most important direct and indirect stakeholders that are impacted by this research include government officials and the general public of the United States. Government officials use this data to decipher where changes need to be made in various aspects of our government including but not limited to policies, laws, support of social justice movements, and processes such as justice and incarceration systems. 
+	In my report, I will explore how the proportion of black and white individuals compares to the total jail population. 
+
 
 ## Data Summary 
-[TODO]
+The data includes many values that portray the various race disparities seen in incarceration rates. For example, the maximum black jail population from the entire data set is `r max_black_pop`, which is nearly double the maximum white jail population of `r max_white_pop`. This illustrates how black individuals are twice as likely, according to this data set, to end up in jail. In addition, data from 2018 shows that the black population of the jail in Bullock county was `r black_jail_population_2018_Bullock`, while the white jail population was `r white_jail_population_2018_Bullock`. This shows how 3/4 of the jail inmates were black. 
 
-[TODO ... other sections ... See Canvas for details]
+
+
+##Growth of the U.S Prison System
 
 _All the very best with your work!_
 
