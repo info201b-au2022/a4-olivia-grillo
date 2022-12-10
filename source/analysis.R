@@ -1,4 +1,5 @@
 library(tidyverse)
+library(dplyr)
 
 # The functions might be useful for A4
 source("../source/a4-helpers.R")
@@ -20,10 +21,9 @@ test_query2 <- function(num=6) {
 
 ## Section 2  ---- 
 #----------------------------------------------------------------------------#
-# Your functions and variables might go here ... <todo: update comment>
-#----------------------------------------------------------------------------#
 #laod in incarceration data into dataframe
-incarceration_data <- read.csv("../incarceration-trends/incarceration_trends.csv")
+incarceration_data <- read.csv("https://raw.githubusercontent.com/vera-institute
+                               /incarceration-trends/master/incarceration_trends.csv")
 
 #view incarceration data frame
 View(incarceration_data)
@@ -33,11 +33,12 @@ incarceration_data_2013plus <- incarceration_data %>%
   filter(year >= 2013)
 
 #new data frame that shows black_jail_pop, white_jail_pop, total_jail_pop
-black_vs_white_jail_pop <- incarceration_data_2013plus %>% 
+incarceration_data_2013plus <- incarceration_data_2013plus %>% 
   summarize(year, state, county_name, black_jail_pop, white_jail_pop, total_jail_pop)
 
+View(incarceration_data_2013plus)
 #max black jail population in a given year
-max_black_pop <- black_vs_white_jail_pop %>% 
+max_black_pop <- incarceration_data_2013plus %>% 
   filter(black_jail_pop == max(black_jail_pop, na.rm = TRUE)) %>% 
   select(black_jail_pop)
 
@@ -81,15 +82,6 @@ View(black_vs_white_pop)
 # Growth of the U.S. Prison Population
 # Your functions might go here
 
-plot_jail_pop_for_us <- function (df) {
-  ggplot(data = get_year_jail_pop(df)) +
-    geom_col(mapping = aes(x = year, y = total_jail_pop))
-}
-View(plot_jail_pop_for_us(incarceration_data))
-
-#----------------------------------------------------------------------------#
-# This function aggregates the incarceration data to present the 
-#numbers of total jail populations from years 1970-2018
 get_year_jail_pop <- function() {
   yearly <- incarceration_data %>% 
     select(year, total_jail_pop) %>% 
@@ -101,16 +93,19 @@ get_year_jail_pop <- function() {
 return(yearly)   
 }
 
-yearly_pop <- get_year_jail_pop()
-View(yearly_pop)
+
+View(get_year_jail_pop())
 # This function creates a bar graph that represents the total 
 #jail popualtion from each year
 plot_jail_pop_for_us <- function()  {
-  us_plot <- ggplot(yearly_pop, aes(x = year, y = total_jail_pop)) + geom_bar(state = "identity")
-  return(us_plot)   
+  yearly_jail_pop <- get_year_jail_pop()
+  total_pop_plot <- ggplot(yearly_jail_pop, aes(x = year, y = total_jail_pop)) +
+    geom_bar(stat = "identity") + xlab("Year") + 
+    ylab("Total Jail Population") + 
+    ggtitle("Increase of Jail Popualtion in the U.S. (1970-2018)")
+  return (total_pop_plot)
 } 
-yearly_pop_plot <- plot_jail_pop_for_us()
-View(yearly_pop_plot)
+plot_jail_pop_for_us()
 
 ## Section 4  ---- 
 #----------------------------------------------------------------------------#
@@ -119,8 +114,6 @@ View(yearly_pop_plot)
 # See Canvas
 #----------------------------------------------------------------------------#
 
-#states <- states_total_jail_pop$state
-
 #This function produces a data frame with total jail population per year from 
 #the states that are passed to the function in a vector
 get_jail_pop_by_states <- function(states) {
@@ -128,34 +121,83 @@ get_jail_pop_by_states <- function(states) {
     select(year, state, total_jail_pop)
     
   choose_state <- by_states %>% 
-    filter(state == states)
+    filter(state %in% states)
   return(choose_state)
 }
-states_jail_pop <- get_jail_pop_by_states()
-View(get_jail_pop_by_states(c("CA", "WA")))
 
-#This function...
+#This function creates a line graph of the rate of change of jail population in the 
+#given states
 plot_jail_pop_by_states <- function(states) {
-  states_plot <- ggplot(get_jail_pop_by_states(states), aes(x = year, y = total_jail_pop, color = state))
-  + stat_summary(fun = "mean", geom = "line") + xlab("Year")
-  + ylab("Total Jail Population") + ggtitle("Increase of Jail Population in United States 
-                                            (1970-2018)")
+  states_plot <- ggplot(get_jail_pop_by_states(states), aes(x = year, y = total_jail_pop, color = state)) + 
+    stat_summary(fun = "mean", geom = "line") + labs(title = "Increase in jail Population in the US (1970-2018)", 
+                                                     x = "Year", y = "Total Jail Population")
   return(states_plot)
 }
 
-plot_jail_pop_by_states("CA", "WA")
+plot_jail_pop_by_states(c("CA", "WA"))
 ## Section 5  ---- 
 #----------------------------------------------------------------------------#
-# <variable comparison that reveals potential patterns of inequality>
-# Your functions might go here 
-# See Canvas
-#----------------------------------------------------------------------------#
+#black avg vs white avg jail population 
+
+female_adult_jail_pop_by_states <- function(states) {
+  per_state <- incarceration_data %>% 
+    select(year, state, female_adult_jail_pop)
+  
+  choosen_states <- per_state %>% 
+    filter(state %in% states)
+  return(choosen_states)
+}
+
+plot_female_adult_jail_pop_by_states <- function(states) {
+  by_state_plot <- ggplot(female_adult_jail_pop_by_states(states), aes(x = year, y = female_adult_jail_pop, color = state)) + 
+    stat_summary(fun = "mean", geom = "line") + labs(title = "Female jail Population in the US (1970-2018)", 
+                                                     x = "Year", y = "Female Jail Population")
+  return(by_state_plot)
+}
 
 ## Section 6  ---- 
 #----------------------------------------------------------------------------#
 # <a map shows potential patterns of inequality that vary geographically>
-# Your functions might go here ... <todo:  update comment>
+# Your functions might go here 
 # See Canvas
+
+latin_jail_pop_states <- function(){
+  by_state <- incarceration_data %>% 
+    filter(year == "2010") %>% 
+    group_by(state) %>% 
+    summarise(state, latinx_jail_pop)
+  by_state <- aggregate(latinx_jail_pop~., by_state, FUN = sum)
+  return (by_state)
+}
+
+state_info <- unique(latin_jail_pop_states())
+
+state_names <- c("alaska", "alabama", "arkansas", "arizona", "california", "colorado", "district of columbia",
+                                "florida", "georgia", "iowa", "idaho", "illinois", "indiana", "kansas", "kentucky", "louisiana",
+                                "massachusetts", "maryland", "maine", "michigan", "minnesota", "missouri", "mississippi", "montana",
+                                "north carolina", "north dakota", "nebraska", "new hampshire", "new jersey", "new mexico",
+                                "nevada", "new york", "ohio", "oklahoma", "oregon", "pennsylvania", "south carolina",
+                                "south dakota", "tennessee", "texas", "utah", "virginia", "washington", "wisconsin", "west virginia",
+                                "wyoming")
+
+
+latin_jail_pop_states <- subset(latin_jail_pop_states, select = -c(state))
+latin_jail_pop_states$state = state_names
+#plot for map
+state_form <- map_data("state") %>% 
+  rename(state = region) %>% 
+  left_join(state_names, by = "state")
+
+
+map_plot <- ggplot(state_form) +
+  geom_polygon(
+    mapping = aes(x = long, y = lat, group = group),
+    color = "white", size = .2) + coord_map() +
+  scale_fill_continuous(low = "#132B43", high = "Turquoise") + 
+  labs(fill = "Latinx Jail Population", title = "Latinx Jail Popualtion by State",
+       subtitle = "2010")
+
+map_plot
 #----------------------------------------------------------------------------#
 
 ## Load data frame ---- 
